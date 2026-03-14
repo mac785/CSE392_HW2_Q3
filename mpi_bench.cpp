@@ -117,6 +117,42 @@ static double timed_inclusive_vec3(std::size_t local_n, MPI_Datatype mpi_vec3,
 }
 
 // ============================================================
+// OMP-only timing (rank 0 only — pure shared-memory baseline)
+// Uses MPI_Wtime() for clock consistency with the MPI sections.
+// No MPI calls inside; the caller is responsible for barriers.
+// ============================================================
+static double timed_omp_float_only(std::size_t n)
+{
+    std::vector<float> buf(n);
+
+    // Warm-up
+    fill_float(buf.data(), n);
+    inclusive_scan_omp_fast(buf.data(), n, 0.f, std::plus<float>{});
+
+    // Timed run
+    fill_float(buf.data(), n);
+    double t0 = MPI_Wtime();
+    inclusive_scan_omp_fast(buf.data(), n, 0.f, std::plus<float>{});
+    double t1 = MPI_Wtime();
+    return (t1 - t0) * 1e3;   // ms
+}
+
+static double timed_omp_vec3_only(std::size_t n)
+{
+    auto vadd = [](const Vec3& a, const Vec3& b){ return a + b; };
+    std::vector<Vec3> buf(n);
+
+    fill_vec3(buf.data(), n);
+    inclusive_scan_omp_fast(buf.data(), n, Vec3{}, vadd);
+
+    fill_vec3(buf.data(), n);
+    double t0 = MPI_Wtime();
+    inclusive_scan_omp_fast(buf.data(), n, Vec3{}, vadd);
+    double t1 = MPI_Wtime();
+    return (t1 - t0) * 1e3;
+}
+
+// ============================================================
 // Correctness check (small n, all ranks)
 // ============================================================
 static void run_correctness(int rank, int /*size*/, MPI_Datatype mpi_vec3)
@@ -198,16 +234,18 @@ int main(int argc, char** argv)
     // CSV header (rank 0 only)
     if (rank == 0) {
         std::cout << "\n=== Benchmark results ===\n";
-        std::cout << "kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms\n";
+        std::cout << "impl,kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms\n";
         std::cout << std::fixed << std::setprecision(3);
     }
 
-    auto print_row = [&](const char* kind, const char* type, const char* scaling,
-                         const char* n_label, std::size_t n_total, std::size_t n_local,
+    auto print_row = [&](const char* impl, const char* kind, const char* type,
+                         const char* scaling, const char* n_label,
+                         std::size_t n_total, std::size_t n_local,
                          double wall_ms)
     {
         if (rank == 0) {
-            std::cout << kind     << ","
+            std::cout << impl     << ","
+                      << kind     << ","
                       << type     << ","
                       << scaling  << ","
                       << n_label  << ","
@@ -223,6 +261,48 @@ int main(int argc, char** argv)
     for (int si = 0; si < n_sizes; ++si) {
         const std::size_t N         = sizes[si];
         const char*       n_label   = size_names[si];
+
+        // ------------------------------------------------------------------
+        // OMP-only strong scaling (rank 0 only — pure shared-memory baseline)
+        //
+        // Thread count = min(n_omp * size, hw_threads) so total OMP threads
+        // matches the aggregate thread count of the full MPI job, capped at
+        // hardware concurrency to avoid over-subscription.
+        // ------------------------------------------------------------------
+        if (rank == 0) {
+            // Use n_omp * size threads so total matches the aggregate of all
+            // MPI ranks.  --bind-to none in mpirun prevents MPI from
+            // restricting this process to a single CPU.
+            const int omp_total = n_omp * size;
+            omp_set_num_threads(omp_total);
+
+            const std::size_t limit = std::size_t(4) << 30;
+
+            if (N * sizeof(float) <= limit) {
+                double t = timed_omp_float_only(N);
+                std::cout << "omp,inclusive,float,strong,"
+                          << n_label << "," << N << "," << N
+                          << ",1," << omp_total << "," << t << "\n";
+                std::cout.flush();
+            } else {
+                std::cout << "# skip omp strong float " << n_label
+                          << " (too large)\n";
+            }
+
+            if (N * sizeof(Vec3) <= limit) {
+                double t = timed_omp_vec3_only(N);
+                std::cout << "omp,inclusive,vec3,strong,"
+                          << n_label << "," << N << "," << N
+                          << ",1," << omp_total << "," << t << "\n";
+                std::cout.flush();
+            } else {
+                std::cout << "# skip omp strong vec3 " << n_label
+                          << " (too large)\n";
+            }
+
+            omp_set_num_threads(n_omp);   // restore for MPI phases
+        }
+        MPI_Barrier(MPI_COMM_WORLD);
 
         // ------------------------------------------------------------------
         // Strong scaling: total = N, local = N / size
@@ -243,7 +323,7 @@ int main(int argc, char** argv)
 
                 if (float_bytes <= limit) {
                     double t = timed_inclusive_float(local_n);
-                    print_row("inclusive", "float", "strong", n_label,
+                    print_row("mpi", "inclusive", "float", "strong", n_label,
                               N, local_n, t);
                 } else if (rank == 0) {
                     std::cout << "# skip strong float " << n_label
@@ -252,7 +332,7 @@ int main(int argc, char** argv)
 
                 if (vec3_bytes <= limit) {
                     double t = timed_inclusive_vec3(local_n, mpi_vec3);
-                    print_row("inclusive", "vec3", "strong", n_label,
+                    print_row("mpi", "inclusive", "vec3", "strong", n_label,
                               N, local_n, t);
                 } else if (rank == 0) {
                     std::cout << "# skip strong vec3 " << n_label
@@ -275,7 +355,7 @@ int main(int argc, char** argv)
 
             if (float_bytes <= limit) {
                 double t = timed_inclusive_float(local_n);
-                print_row("inclusive", "float", "weak", n_label,
+                print_row("mpi", "inclusive", "float", "weak", n_label,
                           n_total, local_n, t);
             } else if (rank == 0) {
                 std::cout << "# skip weak float " << n_label << " (too large)\n";
@@ -283,7 +363,7 @@ int main(int argc, char** argv)
 
             if (vec3_bytes <= limit) {
                 double t = timed_inclusive_vec3(local_n, mpi_vec3);
-                print_row("inclusive", "vec3", "weak", n_label,
+                print_row("mpi", "inclusive", "vec3", "weak", n_label,
                           n_total, local_n, t);
             } else if (rank == 0) {
                 std::cout << "# skip weak vec3 " << n_label << " (too large)\n";

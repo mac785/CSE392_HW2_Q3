@@ -3,19 +3,27 @@ Correctness  float  inclusive_scan_mpi : OK
 Correctness  Vec3   inclusive_scan_mpi : OK
 
 === Benchmark results ===
-kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms
-inclusive,float,strong,2^20,1048576,524288,2,4,0.288
-inclusive,vec3,strong,2^20,1048576,524288,2,4,0.480
-inclusive,float,weak,2^20,2097152,1048576,2,4,0.555
-inclusive,vec3,weak,2^20,2097152,1048576,2,4,1.359
-inclusive,float,strong,2^25,33554432,16777216,2,4,16.030
-inclusive,vec3,strong,2^25,33554432,16777216,2,4,48.141
-inclusive,float,weak,2^25,67108864,33554432,2,4,29.637
-inclusive,vec3,weak,2^25,67108864,33554432,2,4,84.770
-inclusive,float,strong,2^30,1073741824,536870912,2,4,479.642
+impl,kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms
+omp,inclusive,float,strong,2^20,1048576,1048576,1,24,1.912
+omp,inclusive,vec3,strong,2^20,1048576,1048576,1,24,0.651
+mpi,inclusive,float,strong,2^20,1048576,524288,2,12,0.103
+mpi,inclusive,vec3,strong,2^20,1048576,524288,2,12,0.229
+mpi,inclusive,float,weak,2^20,2097152,1048576,2,12,0.262
+mpi,inclusive,vec3,weak,2^20,2097152,1048576,2,12,0.838
+omp,inclusive,float,strong,2^25,33554432,33554432,1,24,7.919
+omp,inclusive,vec3,strong,2^25,33554432,33554432,1,24,24.056
+mpi,inclusive,float,strong,2^25,33554432,16777216,2,12,8.068
+mpi,inclusive,vec3,strong,2^25,33554432,16777216,2,12,28.759
+mpi,inclusive,float,weak,2^25,67108864,33554432,2,12,18.209
+mpi,inclusive,vec3,weak,2^25,67108864,33554432,2,12,55.606
+omp,inclusive,float,strong,2^30,1073741824,1073741824,1,24,256.816
+# skip omp strong vec3 2^30 (too large)
+mpi,inclusive,float,strong,2^30,1073741824,536870912,2,12,304.158
 # skip strong vec3 2^30 (local=536870912 too large)
-inclusive,float,weak,2^30,2147483648,1073741824,2,4,954.144
+mpi,inclusive,float,weak,2^30,2147483648,1073741824,2,12,641.906
 # skip weak vec3 2^30 (too large)
+# skip omp strong float 2^34 (too large)
+# skip omp strong vec3 2^34 (too large)
 # skip strong float 2^34 (local=8589934592 too large)
 # skip strong vec3 2^34 (local=8589934592 too large)
 # skip weak float 2^34 (too large)

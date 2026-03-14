@@ -234,26 +234,23 @@ int main(int argc, char** argv)
     // CSV header (rank 0 only)
     if (rank == 0) {
         std::cout << "\n=== Benchmark results ===\n";
-        std::cout << "impl,kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms\n";
+        std::cout << "impl,type,scaling,n_label,n_total,np,n_omp,wall_ms,h2d_ms,compute_ms,d2h_ms\n";
         std::cout << std::fixed << std::setprecision(3);
     }
 
-    auto print_row = [&](const char* impl, const char* kind, const char* type,
+    auto print_row = [&](const char* impl, const char* type,
                          const char* scaling, const char* n_label,
-                         std::size_t n_total, std::size_t n_local,
-                         double wall_ms)
+                         std::size_t n_total, double wall_ms)
     {
         if (rank == 0) {
-            std::cout << impl     << ","
-                      << kind     << ","
-                      << type     << ","
-                      << scaling  << ","
-                      << n_label  << ","
-                      << n_total  << ","
-                      << n_local  << ","
-                      << size     << ","
-                      << n_omp    << ","
-                      << wall_ms  << "\n";
+            std::cout << impl    << ","
+                      << type    << ","
+                      << scaling << ","
+                      << n_label << ","
+                      << n_total << ","
+                      << size    << ","
+                      << n_omp   << ","
+                      << wall_ms << ",-,-,-\n";
             std::cout.flush();
         }
     };
@@ -280,9 +277,9 @@ int main(int argc, char** argv)
 
             if (N * sizeof(float) <= limit) {
                 double t = timed_omp_float_only(N);
-                std::cout << "omp,inclusive,float,strong,"
-                          << n_label << "," << N << "," << N
-                          << ",1," << omp_total << "," << t << "\n";
+                std::cout << "omp,float,strong,"
+                          << n_label << "," << N
+                          << ",1," << omp_total << "," << t << ",-,-,-\n";
                 std::cout.flush();
             } else {
                 std::cout << "# skip omp strong float " << n_label
@@ -291,9 +288,9 @@ int main(int argc, char** argv)
 
             if (N * sizeof(Vec3) <= limit) {
                 double t = timed_omp_vec3_only(N);
-                std::cout << "omp,inclusive,vec3,strong,"
-                          << n_label << "," << N << "," << N
-                          << ",1," << omp_total << "," << t << "\n";
+                std::cout << "omp,vec3,strong,"
+                          << n_label << "," << N
+                          << ",1," << omp_total << "," << t << ",-,-,-\n";
                 std::cout.flush();
             } else {
                 std::cout << "# skip omp strong vec3 " << n_label
@@ -323,8 +320,7 @@ int main(int argc, char** argv)
 
                 if (float_bytes <= limit) {
                     double t = timed_inclusive_float(local_n);
-                    print_row("mpi", "inclusive", "float", "strong", n_label,
-                              N, local_n, t);
+                    print_row("mpi", "float", "strong", n_label, N, t);
                 } else if (rank == 0) {
                     std::cout << "# skip strong float " << n_label
                               << " (local=" << local_n << " too large)\n";
@@ -332,8 +328,7 @@ int main(int argc, char** argv)
 
                 if (vec3_bytes <= limit) {
                     double t = timed_inclusive_vec3(local_n, mpi_vec3);
-                    print_row("mpi", "inclusive", "vec3", "strong", n_label,
-                              N, local_n, t);
+                    print_row("mpi", "vec3", "strong", n_label, N, t);
                 } else if (rank == 0) {
                     std::cout << "# skip strong vec3 " << n_label
                               << " (local=" << local_n << " too large)\n";
@@ -355,16 +350,14 @@ int main(int argc, char** argv)
 
             if (float_bytes <= limit) {
                 double t = timed_inclusive_float(local_n);
-                print_row("mpi", "inclusive", "float", "weak", n_label,
-                          n_total, local_n, t);
+                print_row("mpi", "float", "weak", n_label, n_total, t);
             } else if (rank == 0) {
                 std::cout << "# skip weak float " << n_label << " (too large)\n";
             }
 
             if (vec3_bytes <= limit) {
                 double t = timed_inclusive_vec3(local_n, mpi_vec3);
-                print_row("mpi", "inclusive", "vec3", "weak", n_label,
-                          n_total, local_n, t);
+                print_row("mpi", "vec3", "weak", n_label, n_total, t);
             } else if (rank == 0) {
                 std::cout << "# skip weak vec3 " << n_label << " (too large)\n";
             }

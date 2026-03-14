@@ -3,24 +3,24 @@ Correctness  float  inclusive_scan_mpi : OK
 Correctness  Vec3   inclusive_scan_mpi : OK
 
 === Benchmark results ===
-impl,kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms
-omp,inclusive,float,strong,2^20,1048576,1048576,1,24,1.910
-omp,inclusive,vec3,strong,2^20,1048576,1048576,1,24,1.312
-mpi,inclusive,float,strong,2^20,1048576,1048576,1,24,0.156
-mpi,inclusive,vec3,strong,2^20,1048576,1048576,1,24,0.922
-mpi,inclusive,float,weak,2^20,1048576,1048576,1,24,0.429
-mpi,inclusive,vec3,weak,2^20,1048576,1048576,1,24,0.948
-omp,inclusive,float,strong,2^25,33554432,33554432,1,24,6.933
-omp,inclusive,vec3,strong,2^25,33554432,33554432,1,24,21.855
-mpi,inclusive,float,strong,2^25,33554432,33554432,1,24,7.868
-mpi,inclusive,vec3,strong,2^25,33554432,33554432,1,24,21.827
-mpi,inclusive,float,weak,2^25,33554432,33554432,1,24,7.088
-mpi,inclusive,vec3,weak,2^25,33554432,33554432,1,24,21.932
-omp,inclusive,float,strong,2^30,1073741824,1073741824,1,24,250.578
+impl,type,scaling,n_label,n_total,np,n_omp,wall_ms,h2d_ms,compute_ms,d2h_ms
+omp,float,strong,2^20,1048576,1,24,1.997,-,-,-
+omp,vec3,strong,2^20,1048576,1,24,1.392,-,-,-
+mpi,float,strong,2^20,1048576,1,24,1.914,-,-,-
+mpi,vec3,strong,2^20,1048576,1,24,1.460,-,-,-
+mpi,float,weak,2^20,1048576,1,24,1.455,-,-,-
+mpi,vec3,weak,2^20,1048576,1,24,0.523,-,-,-
+omp,float,strong,2^25,33554432,1,24,7.901,-,-,-
+omp,vec3,strong,2^25,33554432,1,24,22.498,-,-,-
+mpi,float,strong,2^25,33554432,1,24,6.832,-,-,-
+mpi,vec3,strong,2^25,33554432,1,24,21.751,-,-,-
+mpi,float,weak,2^25,33554432,1,24,6.139,-,-,-
+mpi,vec3,weak,2^25,33554432,1,24,21.999,-,-,-
+omp,float,strong,2^30,1073741824,1,24,248.234,-,-,-
 # skip omp strong vec3 2^30 (too large)
-mpi,inclusive,float,strong,2^30,1073741824,1073741824,1,24,277.016
+mpi,float,strong,2^30,1073741824,1,24,242.339,-,-,-
 # skip strong vec3 2^30 (local=1073741824 too large)
-mpi,inclusive,float,weak,2^30,1073741824,1073741824,1,24,281.230
+mpi,float,weak,2^30,1073741824,1,24,246.402,-,-,-
 # skip weak vec3 2^30 (too large)
 # skip omp strong float 2^34 (too large)
 # skip omp strong vec3 2^34 (too large)

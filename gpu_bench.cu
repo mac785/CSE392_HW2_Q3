@@ -271,7 +271,7 @@ int main()
     const std::size_t vram_limit = std::size_t(9) << 30;
 
     std::cout << "\n=== Benchmark results ===\n";
-    std::cout << "kind,type,n_label,n_total,h2d_ms,compute_ms,d2h_ms,total_ms\n";
+    std::cout << "impl,type,scaling,n_label,n_total,np,n_omp,wall_ms,h2d_ms,compute_ms,d2h_ms\n";
     std::cout << std::fixed << std::setprecision(3);
 
     for (int si = 0; si < n_sizes; ++si) {
@@ -281,9 +281,9 @@ int main()
         // ---- float ----
         if (n * sizeof(float) <= vram_limit) {
             Times t = timed_float(n);
-            std::cout << "inclusive,float," << n_label << "," << n << ","
-                      << t.h2d << "," << t.compute << "," << t.d2h << ","
-                      << (t.h2d + t.compute + t.d2h) << "\n";
+            std::cout << "gpu,float,N/A," << n_label << "," << n << ",1,0,"
+                      << (t.h2d + t.compute + t.d2h) << ","
+                      << t.h2d << "," << t.compute << "," << t.d2h << "\n";
             std::cout.flush();
         } else {
             std::cout << "# skip float " << n_label << " (exceeds VRAM limit)\n";
@@ -292,9 +292,9 @@ int main()
         // ---- Vec3 ----
         if (n * sizeof(Vec3) <= vram_limit) {
             Times t = timed_vec3(n);
-            std::cout << "inclusive,vec3," << n_label << "," << n << ","
-                      << t.h2d << "," << t.compute << "," << t.d2h << ","
-                      << (t.h2d + t.compute + t.d2h) << "\n";
+            std::cout << "gpu,vec3,N/A," << n_label << "," << n << ",1,0,"
+                      << (t.h2d + t.compute + t.d2h) << ","
+                      << t.h2d << "," << t.compute << "," << t.d2h << "\n";
             std::cout.flush();
         } else {
             std::cout << "# skip vec3 " << n_label << " (exceeds VRAM limit)\n";

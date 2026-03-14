@@ -8,10 +8,10 @@ Device: NVIDIA GeForce RTX 5070 Ti Laptop GPU  (sm_120)  11772 MiB VRAM
   Vec3   inclusive_scan_cuda (n=2^14, multi-block) : OK
 
 === Benchmark results ===
-kind,type,n_label,n_total,h2d_ms,compute_ms,d2h_ms,total_ms
-inclusive,float,2^20,1048576,0.291,0.204,0.375,0.870
-inclusive,vec3,2^20,1048576,0.824,0.328,1.080,2.232
-inclusive,float,2^25,33554432,8.538,1.699,10.260,20.496
-inclusive,vec3,2^25,33554432,29.830,4.395,32.679,66.904
-inclusive,float,2^30,1073741824,303.700,38.504,341.034,683.238
+impl,type,scaling,n_label,n_total,np,n_omp,wall_ms,h2d_ms,compute_ms,d2h_ms
+gpu,float,N/A,2^20,1048576,1,0,1.001,0.390,0.202,0.408
+gpu,vec3,N/A,2^20,1048576,1,0,6.447,1.142,3.878,1.427
+gpu,float,N/A,2^25,33554432,1,0,22.097,9.313,1.705,11.080
+gpu,vec3,N/A,2^25,33554432,1,0,69.242,31.176,4.399,33.667
+gpu,float,N/A,2^30,1073741824,1,0,677.735,300.607,40.058,337.070
 # skip vec3 2^30 (exceeds VRAM limit)

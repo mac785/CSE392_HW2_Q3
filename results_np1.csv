@@ -1,0 +1,22 @@
+=== Correctness check ===
+Correctness  float  inclusive_scan_mpi : OK
+Correctness  Vec3   inclusive_scan_mpi : OK
+
+=== Benchmark results ===
+kind,type,scaling,n_label,n_total,n_local,np,n_omp,wall_ms
+inclusive,float,strong,2^20,1048576,1048576,1,2,0.450
+inclusive,vec3,strong,2^20,1048576,1048576,1,2,0.548
+inclusive,float,weak,2^20,1048576,1048576,1,2,0.446
+inclusive,vec3,weak,2^20,1048576,1048576,1,2,0.556
+inclusive,float,strong,2^25,33554432,33554432,1,2,19.318
+inclusive,vec3,strong,2^25,33554432,33554432,1,2,32.044
+inclusive,float,weak,2^25,33554432,33554432,1,2,18.998
+inclusive,vec3,weak,2^25,33554432,33554432,1,2,31.805
+inclusive,float,strong,2^30,1073741824,1073741824,1,2,643.962
+# skip strong vec3 2^30 (local=1073741824 too large)
+inclusive,float,weak,2^30,1073741824,1073741824,1,2,907.482
+# skip weak vec3 2^30 (too large)
+# skip strong float 2^34 (local=17179869184 too large)
+# skip strong vec3 2^34 (local=17179869184 too large)
+# skip weak float 2^34 (too large)
+# skip weak vec3 2^34 (too large)
